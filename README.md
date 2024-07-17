@@ -1,2 +1,3 @@
 # Geostatistical analysis of groundwater data in Crete, Greece
-Geostatistical analysis of groundwater data in Crete, Greece.
+
+From the original dataset 35 rows were removed because it contained extreme outliers or inconsistant values (e.g. 31 rows with a groundwater level of 0, 4 rows with groundwater levels greater than 1000 masl).
