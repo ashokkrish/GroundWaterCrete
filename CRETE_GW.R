@@ -10,6 +10,7 @@
 # install.packages("ggspatial")
 # install.packages("gstat")
 
+## Clear all of the objects from your workspace to start with a clean environment
 rm(list = ls())
 
 # Load libraries
@@ -47,7 +48,11 @@ class(GW_df_clean)
 #?variogram
 
 vgm1 <- variogram(GW~1, GW_df_clean)
-plot(vgm1, main = "Variogram")
+vgm1
+
+summary(vgm1)
+
+plot(vgm1, main = "Variogram", pch = 19, xlab = "Distance")
 
 #?fit.variogram
 
@@ -56,7 +61,7 @@ model.1
 
 summary(model.1)
 
-plot(vgm1, model=model.1)
+plot(vgm1, model=model.1, pch = 19, xlab = "Distance")
 
 # fit_exp <- fit.variogram(vgm1, vgm(psill = 1, model = "Exp", range = 300, nugget = 1))
 # fit_gau <- fit.variogram(vgm1, vgm(psill = 1, model = "Gau", range = 300, nugget = 1))
