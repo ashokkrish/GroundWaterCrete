@@ -8,8 +8,9 @@
 # install.packages("sp")
 # install.packages("sf")
 # install.packages("ggspatial")
+# install.packages("gstat")
 
-# rm(list = ls())
+rm(list = ls())
 
 # Load libraries
 library(readxl)
@@ -21,6 +22,7 @@ library(akima)
 library(sp)
 library(sf)
 library(ggspatial)
+library(gstat)
 
 GW_df <- read_excel("CRETE_REGION_GW_DATA_EDIT.xlsx", sheet = "Sheet1")
 
@@ -36,12 +38,37 @@ GW_df_clean <- GW_df %>%
 
 dim(GW_df_clean)
 names(GW_df_clean)
+class(GW_df_clean)
+class(as.data.frame(GW_df_clean))
+
+coordinates(GW_df_clean) = ~East+North
+class(GW_df_clean)
+
+#?variogram
+
+vgm1 <- variogram(GW~1, GW_df_clean)
+plot(vgm1, main = "Variogram")
+
+#?fit.variogram
+
+model.1 <- fit.variogram(vgm1, vgm(psill = 1, model = "Sph", range = 300, nugget = 1))
+model.1
+
+summary(model.1)
+
+plot(vgm1, model=model.1)
+
+# fit_exp <- fit.variogram(vgm1, vgm(psill = 1, model = "Exp", range = 300, nugget = 1))
+# fit_gau <- fit.variogram(vgm1, vgm(psill = 1, model = "Gau", range = 300, nugget = 1))
+# fit_mat <- fit.variogram(vgm1, vgm(psill = 1, model = "Mat", range = 300, nugget = 1, kappa = 0.5))
+
+# plot(vgm1, plot.numbers = TRUE, pch = "+")
 
 # Descriptive statistics
 summary(GW_df_clean$GW)
 
 # Histogram
-ggplot(GW_df_clean, aes(x = GW)) +
+ggplot(as.data.frame(GW_df_clean), aes(x = GW)) +
   geom_histogram(binwidth = 50, fill = "lightblue", color = "black") +
   labs(title = "Histogram of Groundwater Levels in Crete, Greece", x = "Groundwater Level (masl)", y = "Frequency") +
   theme_minimal() + # Use a minimal theme for a clean look
@@ -55,15 +82,15 @@ ggplot(GW_df_clean, aes(x = GW)) +
     panel.grid.minor = element_blank(),                    # Remove minor grid lines
   )
 
-#-------------------------------------------------#
-# Generating frequency tables using dplyr: Part I #
-#-------------------------------------------------#
+#-----------------------------------------#
+# Generating frequency tables using dplyr #
+#-----------------------------------------#
 
 # Define the bins for GW values
 bins <- c(0, 100, 200, 300, 400, 500, 600)
 
 # Create a new column 'GW_bin' that categorizes GW values into bins
-GW_df_clean <- GW_df_clean %>%
+GW_df_clean <- as.data.frame(GW_df_clean) %>%
   mutate(GW_bin = cut(GW, breaks = bins, right = FALSE))
 
 # Create a frequency table for the bins
@@ -75,12 +102,12 @@ frequency_table <- GW_df_clean %>%
 frequency_table <- frequency_table %>%
   mutate(Relative_Frequency = Frequency/sum(Frequency))
 
+# Display the frequency table
+print(frequency_table)
+
 #--------------------------------------------------#
 # Generating frequency tables using dplyr: Part II #
 #--------------------------------------------------#
-
-# Display the frequency table
-print(frequency_table)
 
 # Define the shorter bins for GW values
 
@@ -127,8 +154,8 @@ ggplot(GW_df_clean, aes(x = East, y = North, color = GW)) +
   annotation_north_arrow(location = "tr", which_north = "true", 
                          pad_x = unit(0.1, "in"), pad_y = unit(0.1, "in"),
                          height = unit(0.75, "cm"), width = unit(0.75, "cm")) #+
-  # annotation_scale(location = "bl", width_hint = 0.5, 
-  #                  pad_x = unit(0.1, "in"), pad_y = unit(0.1, "in"))
+# annotation_scale(location = "bl", width_hint = 0.5, 
+#                  pad_x = unit(0.1, "in"), pad_y = unit(0.1, "in"))
 
 
 write.xlsx(GW_df_clean, "CRETE_REGION_GW_DATA_EDIT_Clean.xlsx", rowNames = FALSE)
